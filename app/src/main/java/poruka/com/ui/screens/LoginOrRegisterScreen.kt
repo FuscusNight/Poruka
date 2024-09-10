@@ -21,6 +21,12 @@ import poruka.com.ui.theme.PorukaTheme
 
 @Composable
 fun LoginOrRegisterScreen(
+    /**
+     * Units are special types that represent absence of a result, so similiar to void
+     * Meaning the function still does something, like updating UI but returns no meaningful value
+     *
+     * onLoginClick and onRegisterClick are callbacks, They don't return any value but perform actions when the button is clicked
+     */
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -32,7 +38,7 @@ fun LoginOrRegisterScreen(
             modifier = Modifier.fillMaxSize().padding(16.dp)
         ) {
             Button(
-                onClick = onLoginClick,
+                onClick = onLoginClick, // This executes the function passed in as the callback when the button is clicked
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF8B57DC),
