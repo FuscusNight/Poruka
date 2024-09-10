@@ -30,11 +30,11 @@ import poruka.data.AuthRepository
 
 
 @Composable
-fun HomeScreen(name: String, modifier: Modifier = Modifier) {
+fun UserCreationScreen(onRegisterSuccess: () -> Unit, modifier: Modifier = Modifier) {
     /**
      * Remember is a function to store values in memory of a composable function, even when redrawing UI
      * mutableStateOf can be read and modified
-     * "by" using "by" keyword, you are stating that this getter/getter&setter is provided elsewhere  (https://stackoverflow.com/questions/38250022/what-does-by-keyword-do-in-kotlin)
+     * by using "by" keyword, you are stating that this getter/getter&setter is provided elsewhere  (https://stackoverflow.com/questions/38250022/what-does-by-keyword-do-in-kotlin)
      */
     var emailField by remember { mutableStateOf("") }
     var nameField by remember { mutableStateOf("") }
@@ -79,10 +79,11 @@ fun HomeScreen(name: String, modifier: Modifier = Modifier) {
                     scope.launch { //  statement starts a new coroutine within the coroutine scope that was remembered using rememberCoroutineScope
                         val registerResult = authRepository.registerUser(emailField, passwordField, nameField )
 
-                        result = if (registerResult.isSuccess) {
-                            "User Register Succesfully!"
+                        if (registerResult.isSuccess) {
+                            result = "User Registered Successfully!"
+                            onRegisterSuccess() // No need to return anything here, just call the function
                         } else {
-                            "Registration Failed: ${registerResult.exceptionOrNull()?.message}"
+                            result = "Registration Failed: ${registerResult.exceptionOrNull()?.message}"
                         }
                     }
                     result =  "Inputs are: $passwordField, $emailField, $nameField"
@@ -102,10 +103,10 @@ fun HomeScreen(name: String, modifier: Modifier = Modifier) {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true, showSystemUi = true, apiLevel = 34)
 @Composable
-fun HomeScreenPreview() {
+fun UserCreationScreenPreview() {
     PorukaTheme {
-        HomeScreen("Android")
+        UserCreationScreen(onRegisterSuccess = {})
     }
 }

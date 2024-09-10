@@ -29,6 +29,16 @@ class AuthRepository {
         } catch (e: Exception) {
             Result.failure(e)
         }
-
     }
+
+        // Log in for existing users
+        suspend fun loginUser(email: String, password: String): Result<String> {
+            return try {
+                firebaseAuth.signInWithEmailAndPassword(email, password).await()
+                Result.success("Login successful!")
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
+        }
 }
