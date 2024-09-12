@@ -34,7 +34,7 @@ fun UserCreationScreen(onRegisterSuccess: () -> Unit, modifier: Modifier = Modif
     /**
      * Remember is a function to store values in memory of a composable function, even when redrawing UI
      * mutableStateOf can be read and modified
-     * by using "by" keyword, you are stating that this getter/getter&setter is provided elsewhere  (https://stackoverflow.com/questions/38250022/what-does-by-keyword-do-in-kotlin)
+     * by using "by" keyword, we are stating that this getter/getter&setter is provided elsewhere  (https://stackoverflow.com/questions/38250022/what-does-by-keyword-do-in-kotlin)
      */
     var emailField by remember { mutableStateOf("") }
     var nameField by remember { mutableStateOf("") }
