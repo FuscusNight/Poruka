@@ -64,7 +64,126 @@ class AuthRepository {
             Result.failure(e)
         }
     }
-    // Adding friends by searching email or username
+
+    suspend fun sendFriendRequest(searchQuery: String): Result<String> {
+            val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
+            return try {
+                val snapshot = firestore.collection("users")
+                    .whereEqualTo("email", searchQuery)
+                    .get().await()
+
+                if(snapshot.isEmpty) {
+                    val usernameSnapshot = firestore.collection("users")
+                        .whereEqualTo("userName", searchQuery)
+                        .get().await()
+
+                    if(usernameSnapshot.isEmpty) {
+                        return Result.failure(Exception("No user found with that email or username"))
+
+                    } else {
+                        // retrieves the data for the friend as a Map<String, Any>. This map contains fields like the friend's userId, userName, and email.
+                                                                // access first document returned by the query
+                        val recipientDocument = usernameSnapshot.documents[0]
+                        val recipientId = recipientDocument.id
+
+                        // Create friend request data
+                        val friendRequest = hashMapOf(
+                            "senderId" to userId,
+                            "status" to "pending"
+                        )
+                        /**
+                         * firestore.collection("users") - Goes into users collection in firestore
+                         * .document(userId): Fetches ID of the users that is getting the friend request.
+                         *
+                         * .collection("friendRequest"): Accesses (or creates, if it doesn't exist) a sub-collection
+                         * called friendRequest inside the current user's document. This sub-collection will hold the list of friends for that user.
+                         *
+                         * .set(friendData).await(): This stores the friend's data (from the map friendData) in the document. The await() ensures
+                         * that the function waits for the Firestore write operation to complete before proceeding.
+                         */
+                        firestore.collection("users").document(recipientId)
+                            .collection("friendRequests").document(userId).set(friendRequest).await()
+
+                        return Result.success("Friend request sent successfully!")
+                    }
+
+            } else {
+                val recipientDocument = snapshot.documents[0]
+                val recipientId = recipientDocument.id
+
+                val friendRequest = hashMapOf(
+                    "senderId" to userId,
+                    "status" to "pending"
+                )
+
+                firestore.collection("users").document(recipientId)
+                    .collection("friendRequests").document(userId).set(friendRequest).await()
+
+                return Result.success("Friend request sent successfully!")
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getFriendRequest(): Result<List<Map<String, String>>> {
+        val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
+        return try {
+            val snapshot = firestore.collection("users").document(userId)
+                .collection("friendRequests").whereEqualTo("status", "pending").get().await()
+
+            val friendRequests = snapshot.documents.map { document ->
+                mapOf(
+                    "senderId" to document.getString("senderId").orEmpty(),
+                    "status" to document.getString("status").orEmpty()
+                )
+            }
+            Result.success(friendRequests)
+        } catch (e:Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Accepting friend requests
+    suspend fun acceptFriendRequest(senderId: String): Result<String> {
+        val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
+        return try {
+            firestore.collection("users").document(userId)
+                .collection("friendRequests").document(senderId).update("status", "accepted").await()
+
+            // Get sender's user details
+            val senderSnapshot = firestore.collection("users").document(senderId).get().await()
+            val userData = senderSnapshot.data ?: return Result.failure(Exception("Sender not found"))
+            firestore.collection("users").document(senderId)
+                .collection("friends").document(userId).set(userData).await()
+
+            Result.success("Friend request accepted!")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Reject a friend request
+    suspend fun rejectFriendRequest(senderId: String): Result<String> {
+        val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
+        return try {
+            firestore.collection("users").document(userId)
+                .collection("friendRequests").document(senderId).update("status", "rejected").await()
+
+            Result.success("Friend request rejected!")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+}
+
+
+
+
+
+    /* Adding friends by searching email or username
     suspend fun addFriend(searchQuery: String): Result<String> {
         val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
         return try {
@@ -115,5 +234,8 @@ class AuthRepository {
         }
     }
 
+     */
 
-}
+
+
+

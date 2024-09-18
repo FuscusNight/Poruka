@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.google.firebase.FirebaseApp
 import poruka.com.ui.screens.AddFriendScreen
+import poruka.com.ui.screens.FriendRequestScreen
 import poruka.com.ui.screens.FriendsScreen
 import poruka.com.ui.screens.LoginOrRegisterScreen
 import poruka.com.ui.screens.LoginScreen
@@ -68,13 +69,20 @@ class MainActivity : ComponentActivity() {
                         Screen.Home -> UserHomeScreen(
                             onFriendsClick = { navigateTo(Screen.Friends) },
                         )
+
                         Screen.Friends -> FriendsScreen(
                             onAddFriendClick = { navigateTo(Screen.AddFriend) },
+                            onViewFriendRequestsClick = { navigateTo(Screen.FriendRequests) },
                             onBackClick = { goBack()}
                         )
                         Screen.AddFriend -> AddFriendScreen(
                             onFriendAdded = { goBack() },
                             onBackClick = { goBack() }
+                        )
+                        Screen.FriendRequests -> FriendRequestScreen(
+                            onBackClick = { goBack()},
+                            onFriendAccepted = { navigateTo(Screen.FriendRequests) },
+                            onFriendRejected = { navigateTo(Screen.FriendRequests) }
                         )
                     }
 
@@ -90,6 +98,7 @@ class MainActivity : ComponentActivity() {
         object Home : Screen()
         object Friends : Screen()
         object AddFriend : Screen()
+        object FriendRequests : Screen()
     }
 }
 

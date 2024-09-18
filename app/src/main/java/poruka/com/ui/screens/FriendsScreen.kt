@@ -32,6 +32,7 @@ import poruka.data.AuthRepository
 @Composable
 fun FriendsScreen(
     onAddFriendClick: () -> Unit,
+    onViewFriendRequestsClick: () -> Unit,
     onBackClick: () -> Unit ,
     modifier: Modifier = Modifier
 ) {
@@ -87,6 +88,17 @@ fun FriendsScreen(
                 ) {
                     Text("Add Friend")
                 }
+                // New button to view friend requests
+                Button(
+                    onClick = onViewFriendRequestsClick,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF57DC8B),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Text("View Friend Requests")
+                }
             }
         }
     }
@@ -96,6 +108,6 @@ fun FriendsScreen(
 @Composable
 fun FriendsScreenPreview() {
     PorukaTheme {
-        FriendsScreen(onAddFriendClick = {}, onBackClick = {})
+        FriendsScreen(onAddFriendClick = {}, onBackClick = {}, onViewFriendRequestsClick = {})
     }
 }

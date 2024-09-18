@@ -62,7 +62,7 @@ fun AddFriendScreen(onFriendAdded: () -> Unit,
                 Button(
                     onClick = {
                         scope.launch {
-                            val result = authRepository.addFriend(searchQuery)
+                            val result = authRepository.sendFriendRequest(searchQuery)
                             if (result.isSuccess) {
                                 resultMessage = "Friend added successfully!"
                                 onFriendAdded()
