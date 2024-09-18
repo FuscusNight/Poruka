@@ -1,6 +1,7 @@
 package poruka.com.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,12 +12,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope // a coroutine allows an app to perform tasks that might take some time (like fetching data from the internet) without freezing the screen or making the app unresponsive.
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,9 +30,10 @@ import poruka.com.ui.theme.PorukaTheme
 import poruka.data.AuthRepository
 
 
-
 @Composable
-fun UserCreationScreen(onRegisterSuccess: () -> Unit, modifier: Modifier = Modifier) {
+fun UserCreationScreen(onRegisterSuccess: () -> Unit,
+                       onBackClick: () -> Unit ,
+                       modifier: Modifier = Modifier) {
     /**
      * Remember is a function to store values in memory of a composable function, even when redrawing UI
      * mutableStateOf can be read and modified
@@ -45,60 +48,71 @@ fun UserCreationScreen(onRegisterSuccess: () -> Unit, modifier: Modifier = Modif
     val scope = rememberCoroutineScope()
 
 
-    Surface (modifier = Modifier.fillMaxSize()){
+    Surface(modifier = Modifier.fillMaxSize()) {
         // https://developer.android.com/develop/ui/compose/layouts/basics
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(16.dp)
-        ) {
-            TextField(
-                value = emailField,
-                onValueChange = { emailField = it},
-                label = { Text("E-Mail")},
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            TextField(
-                value = nameField,
-                onValueChange = { nameField = it},
-                label = { Text("User Name")},
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            TextField(
-                value = passwordField,
-                onValueChange = { passwordField = it},
-                label = { Text("Password")},
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button (
-                onClick = {
-                    // Since registerUser is a suspend function ie asynchronous , gotta call it inside a coroutine such as rememberCoroutineScope
-                    scope.launch { //  statement starts a new coroutine within the coroutine scope that was remembered using rememberCoroutineScope
-                        val registerResult = authRepository.registerUser(emailField, passwordField, nameField )
-
-                        if (registerResult.isSuccess) {
-                            result = "User Registered Successfully!"
-                            onRegisterSuccess() // No need to return anything here, just call the function
-                        } else {
-                            result = "Registration Failed: ${registerResult.exceptionOrNull()?.message}"
-                        }
-                    }
-                    result =  "Inputs are: $passwordField, $emailField, $nameField"
-                },
-                modifier = modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8B57DC),
-                    contentColor = Color.White
-                )
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Back button at the top-left corner
+            TextButton(
+                onClick = onBackClick,
+                modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
             ) {
-                Text("Submit")
+                Text(text = "← Back", color = Color.Black)
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = result)
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize().padding(16.dp)
+            ) {
+                TextField(
+                    value = emailField,
+                    onValueChange = { emailField = it },
+                    label = { Text("E-Mail") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = nameField,
+                    onValueChange = { nameField = it },
+                    label = { Text("User Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = passwordField,
+                    onValueChange = { passwordField = it },
+                    label = { Text("Password") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        // Since registerUser is a suspend function ie asynchronous , gotta call it inside a coroutine such as rememberCoroutineScope
+                        scope.launch { //  statement starts a new coroutine within the coroutine scope that was remembered using rememberCoroutineScope
+                            val registerResult =
+                                authRepository.registerUser(emailField, passwordField, nameField)
 
+                            if (registerResult.isSuccess) {
+                                result = "User Registered Successfully!"
+                                onRegisterSuccess() // No need to return anything here, just call the function
+                            } else {
+                                result =
+                                    "Registration Failed: ${registerResult.exceptionOrNull()?.message}"
+                            }
+                        }
+                        result = "Inputs are: $passwordField, $emailField, $nameField"
+                    },
+                    modifier = modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF8B57DC),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Submit")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = result)
+
+            }
         }
     }
 }
@@ -107,6 +121,6 @@ fun UserCreationScreen(onRegisterSuccess: () -> Unit, modifier: Modifier = Modif
 @Composable
 fun UserCreationScreenPreview() {
     PorukaTheme {
-        UserCreationScreen(onRegisterSuccess = {})
+        UserCreationScreen(onRegisterSuccess = {}, onBackClick = {})
     }
 }

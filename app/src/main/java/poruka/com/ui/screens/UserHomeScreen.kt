@@ -21,7 +21,9 @@ import poruka.com.ui.theme.PorukaTheme
 
 
 @Composable
-fun UserHomeScreen(onFriendsClick: () -> Unit, modifier: Modifier = Modifier) {
+fun UserHomeScreen(onFriendsClick: () -> Unit,
+                   modifier: Modifier = Modifier)
+{
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             verticalArrangement = Arrangement.Center,

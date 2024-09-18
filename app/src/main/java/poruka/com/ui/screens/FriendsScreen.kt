@@ -1,6 +1,7 @@
 package poruka.com.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,12 +32,13 @@ import poruka.data.AuthRepository
 @Composable
 fun FriendsScreen(
     onAddFriendClick: () -> Unit,
+    onBackClick: () -> Unit ,
     modifier: Modifier = Modifier
 ) {
     val authRepository = AuthRepository()
     val scope = rememberCoroutineScope()
     var friends by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
-    var errorMessage by remember { mutableStateOf<String?>(null)}
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         scope.launch {
@@ -49,32 +52,41 @@ fun FriendsScreen(
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(16.dp)
-        ) {
-            if (friends.isNotEmpty()) {
-                friends.forEach { friend ->
-                    Text(text = "Friend: ${friend["userName"]}, Email: ${friend["email"]}" )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            } else if (errorMessage != null) {
-                Text(text = "Error: $errorMessage")
-            } else {
-                Text(text = "No Friends :(")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = onAddFriendClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8B57DC),
-                    contentColor = Color.White
-                ),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Back button at the top-left corner
+            TextButton(
+                onClick = onBackClick,
+                modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
             ) {
-                Text("Add Friend")
+                Text(text = "← Back", color = Color.Black)
+            }
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize().padding(16.dp)
+            ) {
+                if (friends.isNotEmpty()) {
+                    friends.forEach { friend ->
+                        Text(text = "Friend: ${friend["userName"]}, Email: ${friend["email"]}")
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                } else if (errorMessage != null) {
+                    Text(text = "Error: $errorMessage")
+                } else {
+                    Text(text = "No Friends :(")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onAddFriendClick,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF8B57DC),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Text("Add Friend")
+                }
             }
         }
     }
@@ -84,6 +96,6 @@ fun FriendsScreen(
 @Composable
 fun FriendsScreenPreview() {
     PorukaTheme {
-        FriendsScreen(onAddFriendClick = {})
+        FriendsScreen(onAddFriendClick = {}, onBackClick = {})
     }
 }

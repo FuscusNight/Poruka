@@ -37,6 +37,7 @@ fun LoginOrRegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize().padding(16.dp)
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = onLoginClick, // This executes the function passed in as the callback when the button is clicked
                 modifier = Modifier.fillMaxWidth(),

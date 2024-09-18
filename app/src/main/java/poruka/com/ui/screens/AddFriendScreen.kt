@@ -1,6 +1,7 @@
 package poruka.com.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,48 +30,59 @@ import poruka.com.ui.theme.PorukaTheme
 import poruka.data.AuthRepository
 
 @Composable
-fun AddFriendScreen(onFriendAdded: () -> Unit, modifier: Modifier = Modifier) {
+fun AddFriendScreen(onFriendAdded: () -> Unit,
+                    modifier: Modifier = Modifier,
+                    onBackClick: () -> Unit) {
     val authRepository = AuthRepository()
     var searchQuery by remember { mutableStateOf("") }
     var resultMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(16.dp)
-        ) {
-            TextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text("Search by Email or Username") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    scope.launch {
-                        val result = authRepository.addFriend(searchQuery)
-                        if (result.isSuccess) {
-                            resultMessage = "Friend added successfully!"
-                            onFriendAdded()
-                        } else {
-                            resultMessage = "Error: ${result.exceptionOrNull()?.message}"
-                        }
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8B57DC),
-                    contentColor = Color.White
-                ),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Back button at the top-left corner
+            TextButton(
+                onClick = onBackClick,
+                modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
             ) {
-                Text("Add Friend")
+                Text(text = "← Back", color = Color.Black)
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            resultMessage?.let {
-                Text(text = it)
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize().padding(16.dp)
+            ) {
+                TextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search by Email or Username") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        scope.launch {
+                            val result = authRepository.addFriend(searchQuery)
+                            if (result.isSuccess) {
+                                resultMessage = "Friend added successfully!"
+                                onFriendAdded()
+                            } else {
+                                resultMessage = "Error: ${result.exceptionOrNull()?.message}"
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF8B57DC),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Text("Add Friend")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                resultMessage?.let {
+                    Text(text = it)
+                }
             }
         }
     }
@@ -79,6 +92,6 @@ fun AddFriendScreen(onFriendAdded: () -> Unit, modifier: Modifier = Modifier) {
 @Composable
 fun AddFriendScreenPreview() {
     PorukaTheme {
-        AddFriendScreen(onFriendAdded = {})
+        AddFriendScreen(onFriendAdded = {}, onBackClick = {})
     }
 }

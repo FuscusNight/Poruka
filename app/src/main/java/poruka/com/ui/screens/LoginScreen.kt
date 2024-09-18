@@ -1,6 +1,7 @@
 package poruka.com.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,7 +31,9 @@ import poruka.data.AuthRepository
 
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit, modifier: Modifier = Modifier) {
+fun LoginScreen(onLoginSuccess: () -> Unit,
+                onBackClick: () -> Unit ,
+                modifier: Modifier = Modifier) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var loginResult by remember { mutableStateOf("") }
@@ -38,56 +42,65 @@ fun LoginScreen(onLoginSuccess: () -> Unit, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(16.dp)
-        ) {
-            TextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("E-Mail") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            TextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    scope.launch {
-                        val result = authRepository.loginUser(email, password)
-                        if (result.isSuccess) {
-                            loginResult = "Login Successful!"
-                            onLoginSuccess() // Navigate to Home Screen
-                        } else {
-                            loginResult = "Login Failed: ${result.exceptionOrNull()?.message}"
-                        }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8B57DC),
-                    contentColor = Color.White
-                )
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Back button at the top-left corner
+            TextButton(
+                onClick = onBackClick,
+                modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
             ) {
-                Text("Login")
+                Text(text = "← Back", color = Color.Black)
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = loginResult)
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize().padding(16.dp)
+            ) {
+                TextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("E-Mail") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        scope.launch {
+                            val result = authRepository.loginUser(email, password)
+                            if (result.isSuccess) {
+                                loginResult = "Login Successful!"
+                                onLoginSuccess() // Navigate to Home Screen
+                            } else {
+                                loginResult = "Login Failed: ${result.exceptionOrNull()?.message}"
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF8B57DC),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Login")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = loginResult)
+            }
         }
-    }
 
+    }
 }
 
 @Preview(showBackground = true, showSystemUi = true, apiLevel = 34)
 @Composable
 fun LoginScreenPreview() {
     PorukaTheme {
-        LoginScreen(onLoginSuccess = {})
+        LoginScreen(onLoginSuccess = {}, onBackClick = {})
     }
 }

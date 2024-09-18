@@ -6,10 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.google.firebase.FirebaseApp
 import poruka.com.ui.screens.AddFriendScreen
@@ -28,34 +26,55 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PorukaTheme {
-                // Keeps track which screen the user is looking at
-                var currentScreen by remember { mutableStateOf<Screen>(Screen.Select) }
+                // Nav stack to keep track of screen history
+                val screenStack = remember {mutableStateListOf<Screen>(Screen.Select)}
+                // Keeps track which screen the user is looking at, REMOVE LATER
+                //var currentScreen by remember { mutableStateOf<Screen>(Screen.Select) }
+
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    val currentScreen = screenStack.last()
+
+                    // Function to handle screen navigation
+                    fun navigateTo(screen: Screen) {
+                        screenStack.add(screen)
+                    }
+
+                    // Function to go back to the previous screen
+                    fun goBack() {
+                        if (screenStack.size > 1) {
+                            screenStack.removeLast()
+                        }
+                    }
 
                     // The when expression maps each Screen object to a specific Composable function, which renders the appropriate UI.
                     when (currentScreen) {
                         Screen.Select -> LoginOrRegisterScreen(
                             // We tell it if user clicks on the button assigned to onLoginClick it will then open up the LoginScreen screen
                             // It triggers a callback telling it switch the value to the appropriate screen the user wants to go to
-                            onLoginClick = { currentScreen =  Screen.Login},
-                            onRegisterClick = { currentScreen = Screen.Register}
+                            //onLoginClick = { currentScreen =  Screen.Login},
+                            onLoginClick = { navigateTo(Screen.Login) },
+                            onRegisterClick = { navigateTo(Screen.Register)}
 
                         )
                         Screen.Login  -> LoginScreen(
-                            onLoginSuccess = { currentScreen = Screen.Home}
+                            onLoginSuccess = { navigateTo(Screen.Home) },
+                            onBackClick = { goBack()}
                         )
                         Screen.Register -> UserCreationScreen(
-                            onRegisterSuccess = { currentScreen = Screen.Home}
+                            onRegisterSuccess = { navigateTo(Screen.Home)},
+                            onBackClick = { goBack()}
                         )
                         Screen.Home -> UserHomeScreen(
-                            onFriendsClick = { currentScreen = Screen.Friends }
+                            onFriendsClick = { navigateTo(Screen.Friends) },
                         )
                         Screen.Friends -> FriendsScreen(
-                            onAddFriendClick = { currentScreen = Screen.AddFriend }
+                            onAddFriendClick = { navigateTo(Screen.AddFriend) },
+                            onBackClick = { goBack()}
                         )
                         Screen.AddFriend -> AddFriendScreen(
-                            onFriendAdded = { currentScreen = Screen.Friends }
+                            onFriendAdded = { goBack() },
+                            onBackClick = { goBack() }
                         )
                     }
 
