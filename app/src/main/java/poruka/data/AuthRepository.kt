@@ -148,16 +148,27 @@ class AuthRepository {
     suspend fun acceptFriendRequest(senderId: String): Result<String> {
         val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
         return try {
-            firestore.collection("users").document(userId)
-                .collection("friendRequests").document(senderId).update("status", "accepted").await()
 
-            // Get sender's user details
+            // Get current user's data
+            val userSnapshot = firestore.collection("users").document(userId).get().await()
+            val currentUserData = userSnapshot.data ?: return Result.failure(Exception("Current user not found"))
+
+            // Get sender's data
             val senderSnapshot = firestore.collection("users").document(senderId).get().await()
-            val userData = senderSnapshot.data ?: return Result.failure(Exception("Sender not found"))
+            val senderData = senderSnapshot.data ?: return Result.failure(Exception("Sender not found"))
+
+            //adding each user to the other's frendo list
+            firestore.collection("users").document(userId)
+                .collection("friends").document(senderId).set(senderData).await()
             firestore.collection("users").document(senderId)
-                .collection("friends").document(userId).set(userData).await()
+                .collection("friends").document(userId).set(currentUserData).await()
+
+            // Remove friend request from recipient's collection
+            firestore.collection("users").document(userId)
+                .collection("friendRequests").document(senderId).delete().await()
 
             Result.success("Friend request accepted!")
+
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -168,7 +179,7 @@ class AuthRepository {
         val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
         return try {
             firestore.collection("users").document(userId)
-                .collection("friendRequests").document(senderId).update("status", "rejected").await()
+                .collection("friendRequests").document(senderId).delete().await()
 
             Result.success("Friend request rejected!")
         } catch (e: Exception) {

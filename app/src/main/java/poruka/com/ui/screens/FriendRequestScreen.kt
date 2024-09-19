@@ -40,7 +40,7 @@ fun FriendRequestScreen(
     var friendRequests by remember { mutableStateOf<List<Map<String, String>>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) {
+    fun fetchFriendRequests() {
         scope.launch {
             val result = authRepository.getFriendRequest()
             if (result.isSuccess) {
@@ -49,6 +49,10 @@ fun FriendRequestScreen(
                 errorMessage = result.exceptionOrNull()?.message
             }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        fetchFriendRequests()
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -76,6 +80,7 @@ fun FriendRequestScreen(
                                     scope.launch {
                                         val result = authRepository.acceptFriendRequest(senderId)
                                         if (result.isSuccess) {
+                                            fetchFriendRequests()
                                             onFriendAccepted()
                                         } else {
                                             errorMessage = result.exceptionOrNull()?.message
@@ -97,6 +102,7 @@ fun FriendRequestScreen(
                                     scope.launch {
                                         val result = authRepository.rejectFriendRequest(senderId)
                                         if (result.isSuccess) {
+                                            fetchFriendRequests()
                                             onFriendRejected()
                                         } else {
                                             errorMessage = result.exceptionOrNull()?.message
