@@ -1,8 +1,9 @@
 package poruka.com.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -38,22 +41,34 @@ fun LoginScreen(onLoginSuccess: () -> Unit,
     var password by remember { mutableStateOf("") }
     var loginResult by remember { mutableStateOf("") }
 
-    val authRepository = AuthRepository()
+    val isInPreview = LocalInspectionMode.current
+    val authRepository = if (!isInPreview) AuthRepository() else null
     val scope = rememberCoroutineScope()
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Back button at the top-left corner
-            TextButton(
-                onClick = onBackClick,
-                modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
+        Column {
+            // Top Bar with back button and "Login" title
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFE0E0E0))
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "← Back", color = Color.Black)
+                TextButton(onClick = onBackClick) {
+                    Text(text = "← Back", color = Color.Black)
+                }
+                Text(text = "Login", style = MaterialTheme.typography.titleLarge)
             }
+
+            // Central content: input fields and login button
             Column(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize().padding(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
                 TextField(
                     value = email,
@@ -72,12 +87,12 @@ fun LoginScreen(onLoginSuccess: () -> Unit,
                 Button(
                     onClick = {
                         scope.launch {
-                            val result = authRepository.loginUser(email, password)
-                            if (result.isSuccess) {
+                            val result = authRepository?.loginUser(email, password)
+                            if (result?.isSuccess == true) {
                                 loginResult = "Login Successful!"
                                 onLoginSuccess() // Navigate to Home Screen
                             } else {
-                                loginResult = "Login Failed: ${result.exceptionOrNull()?.message}"
+                                loginResult = "Login Failed: ${result?.exceptionOrNull()?.message}"
                             }
                         }
                     },
@@ -93,7 +108,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit,
                 Text(text = loginResult)
             }
         }
-
     }
 }
 

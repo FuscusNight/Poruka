@@ -133,8 +133,15 @@ class AuthRepository {
                 .collection("friendRequests").whereEqualTo("status", "pending").get().await()
 
             val friendRequests = snapshot.documents.map { document ->
+                val senderId = document.getString("senderId").orEmpty()
+
+                // Fetch the sender's name from the "users" collection
+                val senderSnapshot = firestore.collection("users").document(senderId).get().await()
+                val senderName = senderSnapshot.getString("userName").orEmpty()
+
                 mapOf(
                     "senderId" to document.getString("senderId").orEmpty(),
+                    "senderName" to senderName,
                     "status" to document.getString("status").orEmpty()
                 )
             }
@@ -189,64 +196,5 @@ class AuthRepository {
 
 
 }
-
-
-
-
-
-    /* Adding friends by searching email or username
-    suspend fun addFriend(searchQuery: String): Result<String> {
-        val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
-        return try {
-            val snapshot = firestore.collection("users")
-                .whereEqualTo("email", searchQuery)
-                .get().await()
-
-            if (snapshot.isEmpty) {
-                val usernameSnapshot = firestore.collection("users")
-                    .whereEqualTo("userName", searchQuery)
-                    .get().await()
-
-                if (usernameSnapshot.isEmpty) {
-                    return Result.failure(Exception("No user found with that email or username"))
-                } else {
-                    // retrieves the data for the friend as a Map<String, Any>. This map contains fields like the friend's userId, userName, and email.
-                                                         // access first document returned by the quqery
-                    val friendDocument = usernameSnapshot.documents[0]
-
-                    val friendData = friendDocument.data as Map<String, Any>
-                    /**
-                     * firestore.collection("users") - Goes into users collection in firestore
-                     * .document(userId): Fetches the current logged-in user's document by their userId.
-                     *
-                     * .collection("friends"): Accesses (or creates, if it doesn't exist) a sub-collection
-                     * called friends inside the current user's document. This sub-collection will hold the list of friends for that user.
-                     *
-                     * .document(friendDocument.id): Inside the friends sub-collection, it creates a new document for the friend. The friend's
-                     * document ID is based on their own userId (which was retrieved from the friend search).
-                     *
-                     * .set(friendData).await(): This stores the friend's data (from the map friendData) in the document. The await() ensures
-                     * that the function waits for the Firestore write operation to complete before proceeding.
-                      */
-                    firestore.collection("users").document(userId).collection("friends").document(friendDocument.id).set(friendData).await()
-                    return Result.success("Friend added successfully")
-                }
-
-            } else {
-                // Same as before, this is just if we used an email to look for the friend to add
-                val friendDocument = snapshot.documents[0]
-                val friendData = friendDocument.data as Map<String,Any>
-
-                firestore.collection("users").document(userId).collection("friends").document(friendDocument.id).set(friendData).await()
-                return Result.success("Friend added successfully!")
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-     */
-
-
 
 
