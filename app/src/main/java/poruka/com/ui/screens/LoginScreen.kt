@@ -34,9 +34,10 @@ import poruka.data.AuthRepository
 
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit,
-                onBackClick: () -> Unit ,
-                modifier: Modifier = Modifier) {
+fun LoginScreen(
+    onLoginSuccess: () -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var loginResult by remember { mutableStateOf("") }
