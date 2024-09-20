@@ -22,6 +22,7 @@ import poruka.com.ui.theme.PorukaTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.Theme_Poruka)
         super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(this)
 

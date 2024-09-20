@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -69,15 +70,16 @@ fun FriendRequestScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFE0E0E0))
+                    .height(56.dp)
+                    .background(Color(0xFF4641D3))
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 TextButton(onClick = onBackClick) {
-                    Text(text = "← Back", color = Color.Black)
+                    Text(text = "← Back", color = Color.White)
                 }
-                Text(text = "Friend Requests", style = MaterialTheme.typography.titleLarge)
+                Text(text = "Friend Requests", style = MaterialTheme.typography.titleLarge, color = Color.White)
             }
 
             // Display Friend Requests

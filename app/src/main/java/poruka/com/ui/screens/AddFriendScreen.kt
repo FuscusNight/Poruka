@@ -48,15 +48,16 @@ fun AddFriendScreen(onFriendAdded: () -> Unit,
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFE0E0E0))
+                    .height(56.dp)
+                    .background(Color(0xFF4641D3))
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 TextButton(onClick = onBackClick) {
-                    Text(text = "← Back", color = Color.Black)
+                    Text(text = "← Back", color = Color.White)
                 }
-                Text(text = "Add Friend", style = MaterialTheme.typography.titleLarge)
+                Text(text = "Add Friend", style = MaterialTheme.typography.titleLarge, color = Color.White)
             }
 
             // Central content: search field, button, and result message

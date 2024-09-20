@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -38,16 +39,16 @@ fun UserHomeScreen(onFriendsClick: () -> Unit,
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFE0E0E0))
+                    .height(56.dp)
+                    .background(Color(0xFF4641D3))
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
 
-                Text(text = "Home", style = MaterialTheme.typography.titleLarge)
-
+                Text(text = "Home", style = MaterialTheme.typography.titleLarge, color = Color.White)
             }
-
+                Spacer(modifier = Modifier.width(50.dp))
             // Central content: welcome message and button
             Column(
                 verticalArrangement = Arrangement.Center,
