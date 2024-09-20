@@ -127,9 +127,16 @@ fun FriendRequestScreen(
                                 Button(
                                     onClick = {
                                         scope.launch {
+                                            // Goes into authRep, access the acceptFriendReqeust functions, feeds it the sender ID argument
                                             val result = authRepository?.acceptFriendRequest(senderId)
                                             if (result?.isSuccess == true) {
-                                                fetchFriendRequests()
+                                                //fetchFriendRequests()
+                                                // Remove the friend request locally without refetching the whole list
+                                                friendRequests = friendRequests.filter { it["senderId"] != senderId }
+
+                                                // Alt method where we pop newelly refeshed page so our back stack does not containing multiple same pages
+                                                //navController.popBackStack() // Pops this screen from the backstack
+
                                                 onFriendAccepted()
                                             } else {
                                                 errorMessage = result?.exceptionOrNull()?.message
@@ -150,7 +157,12 @@ fun FriendRequestScreen(
                                         scope.launch {
                                             val result = authRepository?.rejectFriendRequest(senderId)
                                             if (result?.isSuccess == true) {
-                                                fetchFriendRequests()
+                                                // Remove the friend request locally without refetching the whole list
+                                                friendRequests = friendRequests.filter { it["senderId"] != senderId }
+
+                                                // Optional: Use popBackStack() to avoid keeping this screen in the backstack
+                                                //navController.popBackStack()
+
                                                 onFriendRejected()
                                             } else {
                                                 errorMessage = result?.exceptionOrNull()?.message

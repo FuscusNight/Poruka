@@ -99,7 +99,7 @@ fun FriendsScreen(
                     Button(
                         onClick = onViewFriendRequestsClick,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF57DC8B),
+                            containerColor = Color(0xFF2B2A81),
                             contentColor = Color.White
                         )
                     ) {
@@ -109,7 +109,7 @@ fun FriendsScreen(
                     Button(
                         onClick = onAddFriendClick,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF8B57DC),
+                            containerColor = Color(0xFF6362DC),
                             contentColor = Color.White
                         )
                     ) {
