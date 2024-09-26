@@ -1,6 +1,8 @@
 package poruka.data
 
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -64,7 +66,7 @@ class AuthRepository {
             Result.failure(e)
         }
     }
-
+    // Send friend request
     suspend fun sendFriendRequest(searchQuery: String): Result<String> {
             val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
             return try {
@@ -125,7 +127,7 @@ class AuthRepository {
             Result.failure(e)
         }
     }
-
+    // Get friend request
     suspend fun getFriendRequest(): Result<List<Map<String, String>>> {
         val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
         return try {
@@ -194,7 +196,106 @@ class AuthRepository {
         }
     }
 
+    // Reauthenticate the user before updating sensitive data like email or password
+    suspend fun reauthenticateUser(currentPassword: String): Result<FirebaseUser> {
+        return try {
+            val user = firebaseAuth.currentUser ?: throw Exception("User not logged in")
+            val credential = EmailAuthProvider.getCredential(user.email!!, currentPassword)
+            user.reauthenticate(credential).await()
+            Result.success(user)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
+    // Send email verification
+    suspend fun sendEmailVerification(): Result<String> {
+        return try {
+            val user = firebaseAuth.currentUser ?: throw Exception("User not logged in")
+            user.sendEmailVerification().await()
+            Result.success("Verification email sent successfully!")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Check if email is verified
+    suspend fun isEmailVerified(): Boolean {
+        val user = firebaseAuth.currentUser
+        return user?.isEmailVerified ?: false
+    }
+
+    // Update email, password, and username
+    suspend fun updateUserDetails(
+        currentPassword: String,
+        newUsername: String?,
+        newEmail: String?,
+        newPassword: String?
+    ): Result<String> {
+        return try {
+            val user = reauthenticateUser(currentPassword).getOrThrow()
+
+            val userId = user.uid
+            val updatedFields = mutableMapOf<String, Any>()
+
+            if (!newUsername.isNullOrEmpty()) {
+                updatedFields["userName"] = newUsername
+                // Update username in the user's own document
+                firestore.collection("users").document(userId)
+                    .update("userName", newUsername).await()
+
+                // Update username in all friends' documents
+                val friendsSnapshot = firestore.collection("users").document(userId)
+                    .collection("friends").get().await()
+                for (friend in friendsSnapshot.documents) {
+                    val friendId = friend.getString("userId").orEmpty()
+                    firestore.collection("users").document(friendId)
+                        .collection("friends").document(userId)
+                        .update("userName", newUsername).await()
+                }
+            }
+
+            if (!newEmail.isNullOrEmpty()) {
+                updatedFields["email"] = newEmail
+                // Verify before updating email in Firebase Authentication
+                user.verifyBeforeUpdateEmail(newEmail).await()
+                firestore.collection("users").document(userId)
+                    .update("email", newEmail).await()
+
+                // Update email in all friends' documents
+                val friendsSnapshot = firestore.collection("users").document(userId)
+                    .collection("friends").get().await()
+                for (friend in friendsSnapshot.documents) {
+                    val friendId = friend.getString("userId").orEmpty()
+                    firestore.collection("users").document(friendId)
+                        .collection("friends").document(userId)
+                        .update("email", newEmail).await()
+                }
+            }
+
+            if (!newPassword.isNullOrEmpty()) {
+                user.updatePassword(newPassword).await()
+            }
+
+            Result.success("User details updated successfully!")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+
+    }
+
+    suspend fun reloadUser(): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser ?: return Result.failure(Exception("User not logged in"))
+            user.reload().await()  // This reloads the user's session
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
+
+
+
 
 

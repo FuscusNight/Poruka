@@ -28,6 +28,7 @@ import poruka.data.AuthRepository
 
 @Composable
 fun UserHomeScreen(onFriendsClick: () -> Unit,
+                   onEditProfileClick: () -> Unit,
                    modifier: Modifier = Modifier) {
 
     val isInPreview = LocalInspectionMode.current
@@ -69,6 +70,19 @@ fun UserHomeScreen(onFriendsClick: () -> Unit,
                 ) {
                     Text("Go to Friends List")
                 }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Button to go to Edit Profile Screen
+                Button(
+                    onClick = onEditProfileClick, // Navigates to the Edit Profile screen
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF8B57DC),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Edit Profile")
+                }
             }
         }
     }
@@ -78,6 +92,6 @@ fun UserHomeScreen(onFriendsClick: () -> Unit,
 @Composable
 fun UserHomeScreenPreview() {
     PorukaTheme {
-        UserHomeScreen(onFriendsClick = {})
+        UserHomeScreen(onFriendsClick = {}, onEditProfileClick = {})
     }
 }
