@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
                     // Initialize NavController which will handle all the navigation between screens
                     val navController = rememberNavController()
                     // Start the AppNavHost, passing the navController to it
-                    AppNavHost(navController = navController)
+                    AppNavHost(navController = navController) // This calls the AppNavHost function navigation logic situated in Navigation.kt
                 }
             }
         }

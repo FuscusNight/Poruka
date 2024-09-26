@@ -18,14 +18,29 @@ import poruka.com.ui.screens.UserCreationScreen
 import poruka.com.ui.screens.UserHomeScreen
 
 
+sealed class Screen(val route: String) {
+    object Select : Screen("select")
+    object Login : Screen("login")
+    object Register : Screen("register")
+    object Home : Screen("home")
+    object Friends : Screen("friends")
+    object AddFriend : Screen("add_friend")
+    object FriendRequests : Screen("friend_requests")
+
+    //  a chat or messaging feature in the future, passing arguments such as
+    //  friendId or threadId between the messaging and chat list screens would be needed later.
+    //  Check Note.1 in Obsidian
+}
+
+
 @Composable
 fun AppNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = "select"
+        startDestination = Screen.Select.route
     ) {
         composable(
-            "select",
+            route = Screen.Select.route,
             enterTransition = {
                 slideInHorizontally(
                     initialOffsetX = { fullWidth -> fullWidth },
@@ -52,12 +67,12 @@ fun AppNavHost(navController: NavHostController) {
             }
         ) {
             LoginOrRegisterScreen(
-                onLoginClick = { navController.navigate("login") },
-                onRegisterClick = { navController.navigate("register") }
+                onLoginClick = { navController.navigate(Screen.Login.route) },
+                onRegisterClick = { navController.navigate(Screen.Register.route) }
             )
         }
         composable(
-            "login",
+            route = Screen.Login.route,
             enterTransition = {
                 slideInHorizontally(
                     initialOffsetX = { fullWidth -> fullWidth },
@@ -84,12 +99,12 @@ fun AppNavHost(navController: NavHostController) {
             }
         ) {
             LoginScreen(
-                onLoginSuccess = { navController.navigate("home") },
+                onLoginSuccess = { navController.navigate(Screen.Home.route) },
                 onBackClick = { navController.popBackStack() }
             )
         }
         composable(
-            "register",
+            route = Screen.Register.route,
             enterTransition = {
                 slideInHorizontally(
                     initialOffsetX = { fullWidth -> fullWidth },
@@ -116,12 +131,12 @@ fun AppNavHost(navController: NavHostController) {
             }
         ) {
             UserCreationScreen(
-                onRegisterSuccess = { navController.navigate("home") },
+                onRegisterSuccess = { navController.navigate(Screen.Home.route) },
                 onBackClick = { navController.popBackStack() }
             )
         }
         composable(
-            "home",
+            route = Screen.Home.route,
             enterTransition = {
                 slideInHorizontally(
                     initialOffsetX = { fullWidth -> fullWidth },
@@ -148,11 +163,11 @@ fun AppNavHost(navController: NavHostController) {
             }
         ) {
             UserHomeScreen(
-                onFriendsClick = { navController.navigate("friends") }
+                onFriendsClick = { navController.navigate(Screen.Friends.route) }
             )
         }
         composable(
-            "friends",
+            route = Screen.Friends.route,
             enterTransition = {
                 slideInHorizontally(
                     initialOffsetX = { fullWidth -> fullWidth },
@@ -179,13 +194,13 @@ fun AppNavHost(navController: NavHostController) {
             }
         ) {
             FriendsScreen(
-                onAddFriendClick = { navController.navigate("add_friend") },
-                onViewFriendRequestsClick = { navController.navigate("friend_requests") },
+                onAddFriendClick = { navController.navigate(Screen.AddFriend.route) },
+                onViewFriendRequestsClick = { navController.navigate(Screen.FriendRequests.route) },
                 onBackClick = { navController.popBackStack() }
             )
         }
         composable(
-            "add_friend" ,
+            route = Screen.AddFriend.route ,
             enterTransition = {
                 slideInHorizontally(
                     initialOffsetX = { fullWidth -> fullWidth },
@@ -217,7 +232,7 @@ fun AppNavHost(navController: NavHostController) {
             )
         }
         composable(
-            "friend_requests" ,
+            route = Screen.FriendRequests.route,
             enterTransition = {
                 slideInHorizontally(
                     initialOffsetX = { fullWidth -> fullWidth },
