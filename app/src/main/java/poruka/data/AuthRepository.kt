@@ -1,16 +1,27 @@
 package poruka.data
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
+import java.io.ByteArrayOutputStream
+
 
 class AuthRepository {
 
     // Set up the Firebase tools needed
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    private val storage = FirebaseStorage.getInstance()
 
     // Suspend fun can pause its execution without blocking the main thread and resume later, making it asynchronous
     suspend fun registerUser(email: String, password: String, userName: String): Result<String> {
@@ -19,11 +30,15 @@ class AuthRepository {
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email,password).await()
             val userId = authResult.user?.uid ?: ""
 
+            // Default profile picture URL
+            val defaultProfileImageUrl = "https://firebasestorage.googleapis.com/v0/b/poruka-d701c.appspot.com/o/DefaultProfileJPG.jpg?alt=media&token=3999e5c2-04ef-426d-a9f4-17ad605cf1e1"
+
             // Represents user data that gets stored to Firestore, organized in a waz so Firestore can easily understand and store it
             val user = hashMapOf(
                 "userId" to userId,
                 "email" to email,
-                "userName" to userName
+                "userName" to userName,
+                "profilePictureUrl" to defaultProfileImageUrl
             )
             firestore.collection("users").document(userId).set(user).await()
             Result.success("User registered successfully!")
@@ -240,11 +255,11 @@ class AuthRepository {
 
             if (!newUsername.isNullOrEmpty()) {
                 updatedFields["userName"] = newUsername
-                // Update username in the user's own document
+                // Updates username in the user's own document
                 firestore.collection("users").document(userId)
                     .update("userName", newUsername).await()
 
-                // Update username in all friends' documents
+                // Updates username in all friends' documents
                 val friendsSnapshot = firestore.collection("users").document(userId)
                     .collection("friends").get().await()
                 for (friend in friendsSnapshot.documents) {
@@ -262,7 +277,7 @@ class AuthRepository {
                 firestore.collection("users").document(userId)
                     .update("email", newEmail).await()
 
-                // Update email in all friends' documents
+                // Updates email in all friends' documents
                 val friendsSnapshot = firestore.collection("users").document(userId)
                     .collection("friends").get().await()
                 for (friend in friendsSnapshot.documents) {
@@ -292,6 +307,70 @@ class AuthRepository {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    // Uploads the profile picture and returns the download URL
+    suspend fun uploadProfilePicture(userId: String, imageUri: Uri, context: Context): Result<String> {
+        return try {
+            val storageRef = storage.reference.child("profile_pictures/$userId.jpg")
+
+            // Log message indicating the image upload process started
+            println("Uploading image for user: $userId")
+
+            // Resize the image before uploading
+            val bitmap = resizeImageUri(context, imageUri)
+
+            println("Image successfully resized")
+
+            val baos = ByteArrayOutputStream()
+            val isCompressed = bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+
+            // Log if the compression was successful
+            if (isCompressed) {
+                println("Image compressed successfully")
+            } else {
+                throw Exception("Image compression failed")
+            }
+
+            val imageData = baos.toByteArray()
+            println("Uploading image data of size: ${imageData.size} bytes")
+
+            // Upload the image to Firebase Storage
+            storageRef.putBytes(imageData).await()
+
+            println("Image uploaded successfully, fetching download URL")
+
+            // Fetch the download URL
+            val downloadUrl = storageRef.downloadUrl.await()
+
+            // Update Firestore with the new profile picture URL
+            firestore.collection("users").document(userId)
+                .update("profilePictureUrl", downloadUrl.toString()).await()
+
+            println("Profile picture URL updated in Firestore")
+
+            Result.success(downloadUrl.toString())
+        } catch (e: Exception) {
+            println("Error uploading image: ${e.localizedMessage}")
+            Result.failure(Exception("Failed to upload image: ${e.localizedMessage}"))
+        }
+    }
+
+
+
+    suspend fun resizeImageUri(context: Context, imageUri: Uri): Bitmap {
+        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // ImageDecoder for API level 28+
+            val source = ImageDecoder.createSource(context.contentResolver, imageUri)
+            ImageDecoder.decodeBitmap(source)
+        } else {
+            // For older Android versions
+            @Suppress("DEPRECATION")
+            MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+        }
+
+        // Resize the image to 256x256
+        return Bitmap.createScaledBitmap(bitmap, 256, 256, true)
     }
 }
 

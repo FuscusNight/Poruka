@@ -21,6 +21,12 @@ class MainActivity : ComponentActivity() {
         // Starts firebase for the whole application
         FirebaseApp.initializeApp(this)
 
+        /* Initialize Firebase App Check with Play Integrity
+        val firebaseAppCheck = FirebaseAppCheck.getInstance()
+        firebaseAppCheck.installAppCheckProviderFactory(
+            PlayIntegrityAppCheckProviderFactory.getInstance()
+        )
+           */
         setContent {
             PorukaTheme {
                 //Defines area of screen where content is drawn

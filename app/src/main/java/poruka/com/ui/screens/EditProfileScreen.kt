@@ -1,12 +1,20 @@
 package poruka.com.ui.screens
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -23,10 +31,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
@@ -44,12 +56,12 @@ fun EditProfileScreen(
     var newUsername by remember { mutableStateOf("") }
     var newEmail by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
-
     var currentEmail by remember { mutableStateOf("") }
     var currentUsername by remember { mutableStateOf("") }
-
+    var profileImageUrl by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isEmailVerified by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     val isInPreview = LocalInspectionMode.current
 
@@ -57,6 +69,32 @@ fun EditProfileScreen(
     val scope = rememberCoroutineScope()
     val authRepository = AuthRepository()
 
+    // To launch the image picker
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            scope.launch {
+                val userId = authRepository.getCurrentUserId()
+                if (userId != null) {
+                    val result = authRepository.uploadProfilePicture(userId, uri, context)
+                    result.onSuccess {
+                        profileImageUrl = it
+                        Toast.makeText(context, "Profile picture updated successfully!", Toast.LENGTH_SHORT).show()
+                    }.onFailure { error ->
+                        errorMessage = "Failed to upload image: ${error.message}"
+                        Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show() // Show error message
+                    }
+                } else {
+                    errorMessage = "Error: User ID not found."
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                }
+            }
+        } else {
+            errorMessage = "No image selected."
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+        }
+    }
 
     LaunchedEffect(Unit) {
         val user = FirebaseAuth.getInstance().currentUser
@@ -66,6 +104,7 @@ fun EditProfileScreen(
         if (userId != null) {
             val userDocument = FirebaseFirestore.getInstance().collection("users").document(userId).get().await()
             currentUsername = userDocument.getString("userName").orEmpty()
+            profileImageUrl = userDocument.getString("profilePictureUrl") ?: "https://firebasestorage.googleapis.com/v0/b/poruka-d701c.appspot.com/o/DefaultProfileJPG.jpg?alt=media&token=3999e5c2-04ef-426d-a9f4-17ad605cf1e1"
         }
 
         isEmailVerified = authRepository.isEmailVerified() // Check if email is verified
@@ -81,6 +120,43 @@ fun EditProfileScreen(
                 Text(text = "← Back", color = MaterialTheme.colorScheme.primary)
             }
             Text(text = "Edit Profile", style = MaterialTheme.typography.titleLarge)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Display current profile image
+            if (profileImageUrl != null) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = profileImageUrl),
+                    contentDescription = "Profile Picture",
+                    modifier = Modifier
+                        .size(128.dp)
+                        .aspectRatio(1f)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Show default image
+                Image(
+                    painter = rememberAsyncImagePainter(model = "your_default_image_url"),
+                    contentDescription = "Default Profile Picture",
+                    modifier = Modifier
+                        .size(128.dp)
+                        .aspectRatio(1f)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Button to upload profile image
+            Button(
+                onClick = { imagePickerLauncher.launch("image/*") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text("Upload Profile Picture")
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
