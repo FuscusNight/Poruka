@@ -73,10 +73,12 @@ class AuthRepository {
                 mapOf(
                     "userId" to document.getString("userId").orEmpty(),
                     "userName" to document.getString("userName").orEmpty(),
-                    "email" to document.getString("email").orEmpty()
+                    "email" to document.getString("email").orEmpty(),
+                    "profilePictureUrl" to document.getString("profilePictureUrl").orEmpty()
                 )
             }
             Result.success(friends)
+
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -181,13 +183,33 @@ class AuthRepository {
             val senderSnapshot = firestore.collection("users").document(senderId).get().await()
             val senderData = senderSnapshot.data ?: return Result.failure(Exception("Sender not found"))
 
-            //adding each user to the other's frendo list
-            firestore.collection("users").document(userId)
-                .collection("friends").document(senderId).set(senderData).await()
-            firestore.collection("users").document(senderId)
-                .collection("friends").document(userId).set(currentUserData).await()
+            // Include profilePictureUrl when adding to friends
+            val senderProfilePictureUrl = senderSnapshot.getString("profilePictureUrl").orEmpty()
+            val currentUserProfilePictureUrl = userSnapshot.getString("profilePictureUrl").orEmpty()
 
-            // Remove friend request from recipient's collection
+            // Adds the current user to the sender's friends list with profilePictureUrl
+            firestore.collection("users").document(senderId)
+                .collection("friends").document(userId).set(
+                    mapOf(
+                        "userId" to userId,
+                        "userName" to currentUserData["userName"],
+                        "email" to currentUserData["email"],
+                        "profilePictureUrl" to currentUserProfilePictureUrl  // Include current user's profile picture
+                    )
+                ).await()
+
+            // Adds the sender to the current user's friends list with profilePictureUrl
+            firestore.collection("users").document(userId)
+                .collection("friends").document(senderId).set(
+                    mapOf(
+                        "userId" to senderId,
+                        "userName" to senderData["userName"],
+                        "email" to senderData["email"],
+                        "profilePictureUrl" to senderProfilePictureUrl  // Include sender's profile picture
+                    )
+                ).await()
+
+            // Remove the friend request from the recipient's collection
             firestore.collection("users").document(userId)
                 .collection("friendRequests").document(senderId).delete().await()
 
@@ -348,6 +370,22 @@ class AuthRepository {
                 .update("profilePictureUrl", downloadUrl.toString()).await()
 
             println("Profile picture URL updated in Firestore")
+
+            // Fetch the user's friends and update their profilePictureUrl in the friends collection
+            val friendsSnapshot = firestore.collection("users").document(userId)
+                .collection("friends").get().await()
+
+            for (friend in friendsSnapshot.documents) {
+                val friendId = friend.getString("userId").orEmpty()
+
+                // Update the profile picture URL for this user in the friend's 'friends' sub-collection
+                firestore.collection("users").document(friendId)
+                    .collection("friends").document(userId)
+                    .update("profilePictureUrl", downloadUrl.toString()).await()
+            }
+            // Though is this the best method ? Maybe alt method is it somehow requests the url simply from the user directly
+            // so we don't store a url inside our friends list too for their profile pictures and have to update them too ?
+            println("Profile picture URL updated for all friends")
 
             Result.success(downloadUrl.toString())
         } catch (e: Exception) {

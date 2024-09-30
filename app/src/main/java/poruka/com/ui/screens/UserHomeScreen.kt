@@ -64,7 +64,7 @@ fun UserHomeScreen(onFriendsClick: () -> Unit,
                     onClick = onFriendsClick,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8B57DC),
+                        containerColor = Color(0xFF4641D3),
                         contentColor = Color.White
                     )
                 ) {
@@ -77,7 +77,7 @@ fun UserHomeScreen(onFriendsClick: () -> Unit,
                     onClick = onEditProfileClick, // Navigates to the Edit Profile screen
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8B57DC),
+                        containerColor = Color(0xFF4641D3),
                         contentColor = Color.White
                     )
                 ) {
