@@ -6,12 +6,15 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
+import poruka.com.ui.screens.formatTimestamp
 import java.io.ByteArrayOutputStream
 
 
@@ -410,6 +413,92 @@ class AuthRepository {
         // Resize the image to 256x256
         return Bitmap.createScaledBitmap(bitmap, 256, 256, true)
     }
+
+
+
+    fun getChatMessagesRealTime(friendId: String, onMessagesUpdated: (Result<List<Map<String, String>>>) -> Unit): ListenerRegistration? {
+        val userId = getCurrentUserId() ?: return null
+        val chatId = generateChatId(userId, friendId)
+
+        return firestore.collection("chats").document(chatId).collection("messages")
+            .orderBy("timestamp")  // Order by timestamp
+            .addSnapshotListener { snapshot, e ->
+                if (e != null || snapshot == null) {
+                    onMessagesUpdated(Result.failure(e ?: Exception("Error fetching messages")))
+                    return@addSnapshotListener
+                }
+
+                val messages = snapshot.documents.map { document ->
+                    val timestamp = document.getTimestamp("timestamp")?.toDate()  // Retrieve as Date
+                    mapOf(
+                        "senderId" to document.getString("senderId").orEmpty(),
+                        "content" to document.getString("content").orEmpty(),
+                        //timestamp" to (document.getTimestamp("timestamp")?.toDate()?.toString().orEmpty())
+                        //"timestamp" to (document.getTimestamp("timestamp")?.toDate() ?: java.util.Date())
+                        //"timestamp" to (document.getTimestamp("timestamp")?.toDate()?.let { formatTimestamp(it) } ?: "")
+                        "timestamp" to (timestamp?.let { formatTimestamp(it) } ?: "")
+                    )
+                }
+                onMessagesUpdated(Result.success(messages))
+            }
+    }
+
+
+
+    suspend fun sendMessage(friendId: String, messageContent: String): Result<Unit> {
+        val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
+        val chatId = generateChatId(userId, friendId)
+        return try {
+            val message = mapOf(
+                "senderId" to userId,
+                "content" to messageContent,
+                "timestamp" to Timestamp.now()
+            )
+            firestore.collection("chats").document(chatId)
+                .collection("messages").add(message).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    fun generateChatId(userId: String, friendId: String): String {
+        return if (userId < friendId) "$userId$friendId" else "$friendId$userId"
+    }
+
+    suspend fun getCurrentUserProfilePictureUrl(): String? {
+        val userId = getCurrentUserId() ?: return null
+        return try {
+            // Get the user's document from Firestore
+            val snapshot = firestore.collection("users").document(userId).get().await()
+            // Return the profilePictureUrl from the document
+            snapshot.getString("profilePictureUrl")
+        } catch (e: Exception) {
+            null // Return null if something goes wrong
+        }
+    }
+
+    suspend fun getFriendDetails(friendId: String): Map<String, String?> {
+        return try {
+            // Fetch friend document from Firestore
+            val snapshot = firestore.collection("users").document(friendId).get().await()
+
+            // Return friend's name and profile picture URL
+            mapOf(
+                "userName" to snapshot.getString("userName"),
+                "profilePictureUrl" to snapshot.getString("profilePictureUrl")
+            )
+        } catch (e: Exception) {
+            emptyMap()  // Return empty map if any error occurs
+        }
+    }
+
+
+
+
+
+
+
 }
 
 

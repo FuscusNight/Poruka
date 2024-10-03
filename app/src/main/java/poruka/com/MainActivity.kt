@@ -21,6 +21,13 @@ class MainActivity : ComponentActivity() {
         // Starts firebase for the whole application
         FirebaseApp.initializeApp(this)
 
+        /* Use this to clean cached data from firebase
+        FirebaseFirestore.getInstance().clearPersistence().addOnCompleteListener {
+            // Re-initialize Firestore instance if needed
+            FirebaseFirestore.getInstance()
+        }
+           */
+
         /* Initialize Firebase App Check with Play Integrity
         val firebaseAppCheck = FirebaseAppCheck.getInstance()
         firebaseAppCheck.installAppCheckProviderFactory(

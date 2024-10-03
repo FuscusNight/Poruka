@@ -7,9 +7,12 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import poruka.com.ui.screens.AddFriendScreen
+import poruka.com.ui.screens.ChatScreen
 import poruka.com.ui.screens.EditProfileScreen
 import poruka.com.ui.screens.FriendRequestScreen
 import poruka.com.ui.screens.FriendsScreen
@@ -28,6 +31,7 @@ sealed class Screen(val route: String) {
     object AddFriend : Screen("add_friend")
     object FriendRequests : Screen("friend_requests")
     object EditProfile : Screen("edit_profile")
+    data class Chat(val friendId: String) : Screen("chat/$friendId")
 
     //  a chat or messaging feature in the future, passing arguments such as
     //  friendId or threadId between the messaging and chat list screens would be needed later.
@@ -199,9 +203,51 @@ fun AppNavHost(navController: NavHostController) {
             FriendsScreen(
                 onAddFriendClick = { navController.navigate(Screen.AddFriend.route) },
                 onViewFriendRequestsClick = { navController.navigate(Screen.FriendRequests.route) },
+                onBackClick = { navController.popBackStack() },
+                onChatClick = { friendId ->
+                    navController.navigate(Screen.Chat(friendId).route)
+                }
+            )
+        }
+        composable(
+            route = "chat/{friendId}",
+            arguments = listOf(navArgument("friendId") { type = NavType.StringType }),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> -fullWidth },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> -fullWidth },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) { backStackEntry ->
+            val friendId = backStackEntry.arguments?.getString("friendId") ?: ""
+            val friendName = backStackEntry.arguments?.getString("friendName") ?: ""
+            val friendProfilePictureUrl = backStackEntry.arguments?.getString("friendProfilePictureUrl") ?: ""
+            ChatScreen(
+                friendId = friendId,
+                friendName = friendName,
+                friendProfilePictureUrl = friendProfilePictureUrl,
                 onBackClick = { navController.popBackStack() }
             )
         }
+
         composable(
             route = Screen.AddFriend.route ,
             enterTransition = {

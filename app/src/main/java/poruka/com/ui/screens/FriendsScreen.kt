@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,6 +48,7 @@ fun FriendsScreen(
     onAddFriendClick: () -> Unit,
     onViewFriendRequestsClick: () -> Unit,
     onBackClick: () -> Unit ,
+    onChatClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isInPreview = LocalInspectionMode.current // Check if we're in preview mode
@@ -140,6 +142,10 @@ fun FriendsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp)
+                                .clickable {
+                                    val friendId = friend["userId"] ?: ""
+                                    onChatClick(friendId) // Open chat with this friend
+                                }
                         ) {
                             // Profile Picture from URL
                             val profilePictureUrl = friend["profilePictureUrl"] ?: ""
@@ -216,6 +222,6 @@ fun FriendsScreen(
 @Composable
 fun FriendsScreenPreview() {
     PorukaTheme {
-        FriendsScreen(onAddFriendClick = {}, onBackClick = {}, onViewFriendRequestsClick = {})
+        FriendsScreen(onAddFriendClick = {}, onBackClick = {}, onViewFriendRequestsClick = {}, onChatClick = {})
     }
 }
