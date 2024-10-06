@@ -44,6 +44,10 @@ class AuthRepository {
                 "profilePictureUrl" to defaultProfileImageUrl
             )
             firestore.collection("users").document(userId).set(user).await()
+
+            // Send verification email
+            firebaseAuth.currentUser?.sendEmailVerification()?.await()
+
             Result.success("User registered successfully!")
 
         } catch (e: Exception) {

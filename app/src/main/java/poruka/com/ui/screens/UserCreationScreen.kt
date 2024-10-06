@@ -106,7 +106,7 @@ fun UserCreationScreen(onRegisterSuccess: () -> Unit,
                                 authRepository?.registerUser(emailField, passwordField, nameField)
 
                             if (registerResult?.isSuccess == true) {
-                                result = "User Registered Successfully!"
+                                result = "User Registered! Please check your email for verification"
                                 onRegisterSuccess()
                             } else {
                                 result =

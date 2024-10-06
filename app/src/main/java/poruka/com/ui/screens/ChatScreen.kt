@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -121,9 +123,11 @@ fun ChatScreen(
                 Text(text = "$friendName Chat", style = MaterialTheme.typography.titleLarge, color = Color.White)
             }
 
-            // Display chat messages
-            Column(modifier = Modifier.weight(1f).padding(16.dp)) {
-                messages.forEach { message ->
+            // Displays chat messages with scrolling
+            LazyColumn(
+                modifier = Modifier.weight(1f).padding(16.dp)
+            ) {
+                items(messages) { message ->
                     val isCurrentUser = message["senderId"] != friendId // Check if the sender is the current user
                     ChatBubble(
                         messageContent = message["content"] ?: "",
