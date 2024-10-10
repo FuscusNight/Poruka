@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -131,99 +133,93 @@ fun EditProfileScreen(
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        Column(
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp), // Space between items
         ) {
-            // Top Bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(Color(0xFF4641D3))
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                TextButton(onClick = onBackClick) {
-                    Text(text = "← Back", color = Color.White)
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .background(Color(0xFF4641D3))
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    TextButton(onClick = onBackClick) {
+                        Text(text = "← Back", color = Color.White)
+                    }
+                    Text(text = "Edit Profile", style = MaterialTheme.typography.titleLarge, color = Color.White)
                 }
-                Text(text = "Edit Profile", style = MaterialTheme.typography.titleLarge, color = Color.White)
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                // Display current profile image
+            // Profile Image centered
+            item {
                 if (profileImageUrl != null) {
-                    Image(
-                        // Asynchronously loads the image from the provided URL (profileImageUrl) using Coil's painter,
-                        // caches the result, and automatically recomposes the UI once the image is ready.
-                        painter = rememberAsyncImagePainter(model = profileImageUrl),
-                        contentDescription = "Profile Picture",
-                        modifier = Modifier
-                            .size(128.dp)
-                            .aspectRatio(1f)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    // Show default image
-                    Image(
-                        painter = rememberAsyncImagePainter(model = "your_default_image_url"),
-                        contentDescription = "Default Profile Picture",
-                        modifier = Modifier
-                            .size(128.dp)
-                            .aspectRatio(1f)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Image(
+                            painter = rememberAsyncImagePainter(model = profileImageUrl),
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .size(128.dp)
+                                .aspectRatio(1f)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Button to upload profile image
+            item {
                 Button(
                     onClick = { imagePickerLauncher.launch("image/*") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4641D3))
                 ) {
                     Text("Upload Profile Picture")
                 }
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Current Email: $currentEmail",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Current Username: $currentUsername",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
 
-                // Display current email and username
-                Text(
-                    text = "Current Email: $currentEmail",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "Current Username: $currentUsername",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                // Input fields for username, email, and new password
+            item {
                 TextField(
                     value = newUsername,
                     onValueChange = { newUsername = it },
                     label = { Text("New Username") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TextField(
                     value = newEmail,
                     onValueChange = { newEmail = it },
                     label = { Text("New Email") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TextField(
@@ -231,44 +227,48 @@ fun EditProfileScreen(
                     onValueChange = { newPassword = it },
                     label = { Text("New Password") },
                     visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Field to confirm current password
                 TextField(
                     value = currentPassword,
                     onValueChange = { currentPassword = it },
                     label = { Text("Current Password") },
                     visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 )
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Email verification status
-                Text(text = "Email Verified: ${if (isEmailVerified) "Yes" else "No"}")
-
-                // Send verification email button
-                if (!isInPreview) {
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                val result = authRepository?.sendEmailVerification()
-                                errorMessage = result?.exceptionOrNull()?.message ?: "Verification email sent!"
-                            }
-                        },
-                        enabled = !isEmailVerified,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4641D3))
-                    ) {
-                        Text("Send Verification Email")
-                    }
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center // Center content inside the Box
+                ) {
+                    Text(
+                        text = "Email Verified: ${if (isEmailVerified) "Yes" else "No"}",
+                    )
                 }
+
+                Button(
+                    onClick = {
+                        // Send verification logic
+                    },
+                    enabled = !isEmailVerified,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4641D3))
+                ) {
+                    Text("Send Verification Email")
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Save Changes Button
                 Button(
                     onClick = {
                         scope.launch {
@@ -305,7 +305,9 @@ fun EditProfileScreen(
                             }
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4641D3))
                 ) {
                     Text("Save Changes")
