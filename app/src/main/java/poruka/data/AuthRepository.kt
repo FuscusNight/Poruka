@@ -18,13 +18,15 @@ import poruka.com.ui.screens.formatTimestamp
 import java.io.ByteArrayOutputStream
 
 
+
+
 class AuthRepository {
 
     // Set up the Firebase tools needed
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
-
     private val storage = FirebaseStorage.getInstance()
+    private val crypt = Crypt()
 
     // Suspend fun can pause its execution without blocking the main thread and resume later, making it asynchronous
     suspend fun registerUser(email: String, password: String, userName: String): Result<String> {
@@ -424,6 +426,8 @@ class AuthRepository {
         val userId = getCurrentUserId() ?: return null
         val chatId = generateChatId(userId, friendId)
 
+        val lookupTable = crypt.createLookupTable()  // Create the lookup table for decryption
+
         return firestore.collection("chats").document(chatId).collection("messages")
             .orderBy("timestamp")  // Order by timestamp
             .addSnapshotListener { snapshot, e ->
@@ -434,9 +438,11 @@ class AuthRepository {
 
                 val messages = snapshot.documents.map { document ->
                     val timestamp = document.getTimestamp("timestamp")?.toDate()  // Retrieve as Date
+                    val encryptedContent = document.getString("content").orEmpty()
+                    val decryptedMessage = crypt.decrypt(encryptedContent, lookupTable)  // Decrypt the message
                     mapOf(
                         "senderId" to document.getString("senderId").orEmpty(),
-                        "content" to document.getString("content").orEmpty(),
+                        "content" to decryptedMessage,
                         //timestamp" to (document.getTimestamp("timestamp")?.toDate()?.toString().orEmpty())
                         //"timestamp" to (document.getTimestamp("timestamp")?.toDate() ?: java.util.Date())
                         //"timestamp" to (document.getTimestamp("timestamp")?.toDate()?.let { formatTimestamp(it) } ?: "")
@@ -452,10 +458,15 @@ class AuthRepository {
     suspend fun sendMessage(friendId: String, messageContent: String): Result<Unit> {
         val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
         val chatId = generateChatId(userId, friendId)
+
+        // Encrypt the message before storing it
+        val lookupTable = crypt.createLookupTable()   // Create the lookup table
+        val encryptedMessage = crypt.encrypt(messageContent, lookupTable)
+
         return try {
             val message = mapOf(
                 "senderId" to userId,
-                "content" to messageContent,
+                "content" to encryptedMessage,
                 "timestamp" to Timestamp.now()
             )
             firestore.collection("chats").document(chatId)
